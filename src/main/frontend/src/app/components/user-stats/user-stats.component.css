@@ -1,0 +1,43 @@
+.level-up-glow {
+  animation: glow 1.5s ease-out forwards;
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 0px gold;
+  }
+  30% {
+    box-shadow: 0 0 25px 8px gold;
+  }
+  60% {
+    box-shadow: 0 0 15px 4px orange;
+  }
+  100% {
+    box-shadow: 0 0 0px transparent;
+  }
+}
+
+.floating-msg {
+  animation: floatUp 2s ease-out forwards;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -20px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -40px);
+  }
+}

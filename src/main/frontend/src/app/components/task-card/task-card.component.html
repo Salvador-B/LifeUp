@@ -1,0 +1,59 @@
+<div
+  class="relative p-4 rounded-lg shadow-md hover:scale-105 transform transition duration-500 ease-in-out"
+  [ngClass]="task.done ? 'bg-zinc-800 opacity-80' : 'bg-gray-700'"
+>
+  <!-- Botón menú -->
+  <div class="absolute top-2 right-2 menu-container">
+    <button (click)="toggleMenu()" class="text-gray-300 hover:text-white text-xl mr-1">
+      ⋮
+    </button>
+    <div *ngIf="menuOpen" class="absolute right-0 mt-2 w-32 rounded-lg shadow-lg z-10" [ngClass]="task.done ? 'bg-zinc-700' : 'bg-gray-800'">
+      <button (click)="editTask()" class="block w-full text-left px-4 py-2 hover:bg-gray-600 rounded-t-lg text-sm text-white">
+        ✏️ Editar
+      </button>
+      <button (click)="deleteTask()" class="block w-full text-left px-4 py-2 hover:bg-red-600 rounded-b-lg text-sm text-white">
+        🗑 Eliminar
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido de la tarjeta -->
+  <h3
+    class="text-lg font-bold transition-all duration-500"
+    [ngClass]="task.done ? 'line-through text-gray-400' : 'text-white'"
+  >
+    {{ task.title }}
+  </h3>
+  <p
+    class="text-sm transition-all duration-500"
+    [ngClass]="task.done ? 'text-gray-500 italic' : 'text-gray-300'"
+  >
+    {{ task.description }}
+  </p>
+
+  <p *ngIf="task.dueDate" class="text-xs mt-2 text-gray-400">
+    📅 Fecha límite: {{ task.dueDate | date:'dd/MM/yyyy' }}
+  </p>
+
+  <p class="text-xs mt-1 font-semibold"
+     [ngClass]="{
+       'text-green-400': task.difficulty === 'FACIL',
+       'text-blue-400': task.difficulty === 'NORMAL',
+       'text-orange-400': task.difficulty === 'DIFICIL',
+       'text-red-400': task.difficulty === 'MUY_DIFICIL'
+     }">
+    🎯 Dificultad: {{ task.difficulty }}
+  </p>
+
+  <!-- Botón de acción -->
+  <button
+    *ngIf="!task.done"
+    (click)="completeTask()"
+    class="mt-3 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg transition duration-300"
+  >
+    Completar
+  </button>
+  <div *ngIf="task.done" class="mt-3 text-green-400 font-semibold flex items-center gap-1 transition-opacity duration-500">
+    ✅ Completada
+  </div>
+</div>

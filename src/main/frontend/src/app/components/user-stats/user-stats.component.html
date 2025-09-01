@@ -1,0 +1,45 @@
+<div class="bg-gray-800 text-white p-4 flex items-center gap-4 shadow-lg rounded-lg relative"
+     [ngClass]="{ 'level-up-glow': levelUp }">
+     
+  <!-- Avatar -->
+  <img src="https://cdna.artstation.com/p/assets/images/images/004/219/866/large/hendry-roesly-avatar.jpg?1481474349"
+       alt="Avatar"
+       class="w-16 h-16 rounded-full border-2 border-yellow-400">
+
+  <!-- Info -->
+  <div>
+    <h2 class="text-xl font-bold">{{ user.name }}</h2>
+    <p class="text-sm">Nivel: {{ user.level }}</p>
+
+    <!-- Vida -->
+    <div class="mt-2">
+      <div class="text-xs uppercase flex justify-between">
+        <span>Vida</span>
+        <span>{{ user.health}} / {{ user.maxHealth }}</span>
+      </div>
+      <div class="w-48 bg-red-800 rounded-full h-3 overflow-hidden">
+        <div class="bg-red-500 h-3 transition-all"
+             [style.width.%]="(user.health / user.maxHealth) * 100"></div>
+      </div>
+    </div>
+
+    <!-- Experiencia -->
+    <div class="mt-2 relative">
+      <div class="text-xs uppercase flex justify-between">
+        <span>Experiencia</span>
+        <span>{{ user.experience }} / {{user.level * 20}}</span>
+      </div>
+      <div class="w-48 bg-blue-800 rounded-full h-3 overflow-hidden relative">
+        <div class="bg-blue-400 h-3 transition-all"
+            [style.width.%]="(user.experience / (user.level * 20)) * 100"></div>
+      </div>
+
+      <!-- Mensajes flotantes (aparecen sobre la barra) -->
+      <div class="absolute left-1/2 transform -translate-x-1/2 text-white font-bold floating-msg"
+          *ngFor="let msg of floatingMessages; let i = index"
+          [style.bottom.px]="i * 28">
+        {{ msg.text }}
+      </div>
+    </div>
+  </div>
+</div>

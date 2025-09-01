@@ -1,0 +1,191 @@
+<ng-container *ngIf="auth.isLoggedIn(); else authBlock">
+  <div class="max-w-5xl mx-auto p-4">
+    <button (click)="logout()" class="text-sm text-gray-300 hover:text-white">🚪 Salir</button>
+    <app-user-stats #stats></app-user-stats>
+
+    <!-- Menú de navegación estilo videojuego pro -->
+    <div class="flex justify-center mt-6 mb-6 border-b-2 border-gray-700 relative">
+      <button
+        (click)="activeTab = 'tasks'"
+        [ngClass]="activeTab === 'tasks' 
+          ? 'text-yellow-400 after:scale-x-100' 
+          : 'text-gray-400 hover:text-gray-200 after:scale-x-0'"
+        class="relative px-6 py-3 font-bold transition-all duration-200 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-yellow-400 after:rounded-full after:transition-transform after:duration-300">
+        📋 Tareas
+      </button>
+
+      <button
+        (click)="activeTab = 'daily'"
+        [ngClass]="activeTab === 'daily' 
+          ? 'text-yellow-400 after:scale-x-100' 
+          : 'text-gray-400 hover:text-gray-200 after:scale-x-0'"
+        class="relative px-6 py-3 font-bold transition-all duration-200 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-yellow-400 after:rounded-full after:transition-transform after:duration-300">
+        🔁 Tareas Diarias
+      </button>
+    </div>
+
+    <!-- Botón crear -->
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-extrabold text-gray-100 drop-shadow-lg">
+        {{ activeTab === 'tasks' ? 'Tus tareas' : 'Tus tareas diarias' }}
+      </h2>
+
+      <button 
+        (click)="activeTab === 'tasks' ? openCreateModal() : openCreateDailyModal()" 
+        class="px-5 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-bold rounded-xl shadow-lg hover:scale-105 hover:shadow-yellow-500/50 transition-transform">
+        + Nueva {{ activeTab === 'tasks' ? 'tarea' : 'tarea diaria' }}
+      </button>
+    </div>
+
+    <!-- Lista -->
+    <div *ngIf="activeTab === 'tasks'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <app-task-card 
+        *ngFor="let task of tasks" 
+        [task]="task"
+        (edit)="openEditModal($event)"
+        (refresh)="loadData()"
+        (xpGained)="stats.addFloatingMessage('+' + $event + ' XP')">
+      </app-task-card>
+    </div>
+
+    <div *ngIf="activeTab === 'daily'" class="space-y-6">
+      <!-- Caso: no hay tareas -->
+      <div *ngIf="dailyTasks.length === 0" class="text-center text-gray-400 italic">
+        🌌 No tienes tareas diarias todavía
+      </div>
+
+      <!-- Pendientes -->
+      <div *ngIf="pendingDailyTasks.length > 0">
+        <h3 class="text-lg font-bold text-white mb-2">⚔️ Pendientes</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <app-daily-task 
+            *ngFor="let d of pendingDailyTasks"
+            [dailyTask]="d"
+            (edit)="openEditDailyModal($event)"
+            (refresh)="loadData()"
+            (xpGained)="stats.addFloatingMessage('+' + $event + ' XP')">
+          </app-daily-task>
+        </div>
+      </div>
+
+      <!-- Completadas -->
+      <div *ngIf="completedDailyTasks.length > 0" class="mt-6">
+        <button (click)="showCompleted = !showCompleted"
+                class="flex items-center gap-2 text-lg font-bold text-white mb-2 hover:text-yellow-400 transition">
+          <span [ngClass]="showCompleted ? 'rotate-90' : ''"
+                class="transform transition-transform text-xl">▶</span>
+          <span>Completadas ({{ completedDailyTasks.length }})</span>
+        </button>
+
+        <div *ngIf="showCompleted" class="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <app-daily-task 
+            *ngFor="let d of completedDailyTasks"
+            [dailyTask]="d"
+            (edit)="openEditDailyModal($event)"
+            (refresh)="loadData()"
+            (xpGained)="stats.addFloatingMessage('+' + $event + ' XP')">
+          </app-daily-task>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-96 relative border-2 border-yellow-500">
+        <h3 class="text-xl font-bold mb-4">{{ isEditing ? 'Editar tarea' : 'Nueva tarea' }}</h3>
+        <label class="block text-sm mb-1">Título</label>
+        <input [(ngModel)]="taskForm.title" type="text" class="w-full p-2 rounded bg-gray-700 text-white mb-3 border border-gray-600">
+
+        <label class="block text-sm mb-1">Descripción</label>
+        <textarea [(ngModel)]="taskForm.description" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"></textarea>
+
+        <label class="block text-sm mb-1">Fecha límite</label>
+        <input [(ngModel)]="taskForm.dueDate" type="date" class="w-full p-2 rounded bg-gray-700 text-white mb-3 border border-gray-600">
+
+        <label class="block text-sm mb-1">Dificultad</label>
+        <select [(ngModel)]="taskForm.difficulty" class="w-full p-2 rounded bg-gray-700 text-white mb-3 border border-gray-600">
+          <option value="FACIL">Fácil</option>
+          <option value="NORMAL">Normal</option>
+          <option value="DIFICIL">Difícil</option>
+          <option value="MUY_DIFICIL">Muy Difícil</option>
+        </select>
+
+        <div class="flex justify-end gap-2 mt-4">
+          <button (click)="showModal = false" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancelar</button>
+          <button (click)="saveTask()" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded">
+            {{ isEditing ? 'Guardar cambios' : 'Crear' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal DailyTasks -->
+    <div *ngIf="dailyShowModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-96 relative border-2 border-yellow-500">
+        <h3 class="text-xl font-bold mb-4">{{ dailyIsEditing ? 'Editar tarea diaria' : 'Nueva tarea diaria' }}</h3>
+
+        <label class="block text-sm mb-1">Título</label>
+        <input [(ngModel)]="dailyTaskForm.title" type="text"
+              class="w-full p-2 rounded bg-gray-700 text-white mb-3 border border-gray-600">
+
+        <label class="block text-sm mb-1">Descripción</label>
+        <textarea [(ngModel)]="dailyTaskForm.description"
+                  class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"></textarea>
+
+        <label class="block text-sm mb-1">Dificultad</label>
+        <select [(ngModel)]="dailyTaskForm.difficulty"
+                class="w-full p-2 rounded bg-gray-700 text-white mb-3 border border-gray-600">
+          <option value="FACIL">Fácil</option>
+          <option value="NORMAL">Normal</option>
+          <option value="DIFICIL">Difícil</option>
+          <option value="MUY_DIFICIL">Muy Difícil</option>
+        </select>
+
+        <label class="block text-sm mb-1">Día de inicio</label>
+        <input [(ngModel)]="dailyTaskForm.startDate" type="date"
+              class="w-full p-2 rounded bg-gray-700 text-white mb-3 border border-gray-600">
+
+        <label class="block text-sm mb-1">Recurrencia</label>
+        <select [(ngModel)]="dailyTaskForm.recurrenceType"
+                class="w-full p-2 rounded bg-gray-700 text-white mb-3 border border-gray-600">
+          <option value="DIARIO">Diario</option>
+          <option value="SEMANAL">Semanal</option>
+          <option value="MENSUAL">Mensual</option>
+          <option value="ANUAL">Anual</option>
+        </select>
+
+        <label class="block text-sm mb-1">Repetir cada</label>
+        <input [(ngModel)]="dailyTaskForm.repeatEvery" type="number"
+              class="w-full p-2 rounded bg-gray-700 text-white mb-3 border border-gray-600">
+
+        <!-- Mostrar solo si es semanal -->
+        <div *ngIf="dailyTaskForm.recurrenceType === 'SEMANAL'">
+          <label class="block text-sm mb-1">Días de la semana</label>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button *ngFor="let day of allDays"
+                    (click)="toggleDay(day)"
+                    [ngClass]="dailyTaskForm.daysOfWeek?.includes(day)
+                                ? 'bg-yellow-500 text-black'
+                                : 'bg-gray-600 text-white'"
+                    class="px-3 py-1 rounded-lg text-sm">
+              {{ day | slice:0:3 }}
+            </button>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-4">
+          <button (click)="dailyShowModal = false"
+                  class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancelar</button>
+          <button (click)="saveDailyTask()"
+                  class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded">
+            {{ dailyIsEditing ? 'Guardar cambios' : 'Crear' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #authBlock>
+  <app-auth></app-auth>
+</ng-template>
