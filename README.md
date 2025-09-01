@@ -1,0 +1,1 @@
+Aplicación web gamificada de gestión de tareas desarrollada en Angular y Node.js. Permite a los usuarios crear, completar y administrar tareas mientras suben de nivel, ganan experiencia, monedas y gestionan su salud. Incluye autenticación JWT y persistencia de datos.
