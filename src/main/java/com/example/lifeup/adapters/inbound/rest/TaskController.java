@@ -56,10 +56,13 @@ public class TaskController {
 
     @PatchMapping("/{id}/complete")
     public ResponseEntity<TaskDto> completeTask(@PathVariable UUID id) {
+        System.out.println("➡️ [Controller] completeTask llamado con id=" + id);
         try {
             Task completed = service.completeTask(id);
+            System.out.println("✅ [Controller] tarea completada: " + completed.getId());
             return ResponseEntity.ok(TaskMapper.toDto(completed));
         } catch (RuntimeException e) {
+            System.out.println("❌ [Controller] error completando tarea: " + e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }

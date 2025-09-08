@@ -35,8 +35,12 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
 
     @Override
     public Optional<Task> findById(UUID id) {
+        System.out.println("🔎 [RepoAdapter] buscando tarea con id=" + id);
         return repository.findById(id)
-                .map(this::toDomain);
+                .map(task -> {
+                    System.out.println("✅ [RepoAdapter] encontrada tarea: " + task.getId());
+                    return toDomain(task);
+                });
     }
 
     @Override

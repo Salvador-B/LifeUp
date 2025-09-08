@@ -1,3 +1,4 @@
+<app-achievement-toast></app-achievement-toast>
 <ng-container *ngIf="auth.isLoggedIn(); else authBlock">
   <div class="max-w-5xl mx-auto p-4">
     <button (click)="logout()" class="text-sm text-gray-300 hover:text-white">🚪 Salir</button>
@@ -22,20 +23,41 @@
         class="relative px-6 py-3 font-bold transition-all duration-200 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-yellow-400 after:rounded-full after:transition-transform after:duration-300">
         🔁 Tareas Diarias
       </button>
+
+      <button
+        (click)="activeTab = 'achievements'"
+        [ngClass]="activeTab === 'achievements' 
+          ? 'text-yellow-400 after:scale-x-100' 
+          : 'text-gray-400 hover:text-gray-200 after:scale-x-0'"
+        class="relative px-6 py-3 font-bold transition-all duration-200 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-yellow-400 after:rounded-full after:transition-transform after:duration-300">
+        🏆 Logros
+      </button>
     </div>
 
     <!-- Botón crear -->
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-extrabold text-gray-100 drop-shadow-lg">
-        {{ activeTab === 'tasks' ? 'Tus tareas' : 'Tus tareas diarias' }}
+        <ng-container [ngSwitch]="activeTab">
+          <span *ngSwitchCase="'tasks'">Tus tareas</span>
+          <span *ngSwitchCase="'daily'">Tus tareas diarias</span>
+          <span *ngSwitchCase="'achievements'">Tus logros</span>
+        </ng-container>
       </h2>
 
+      <!-- Botón solo cuando no estamos en logros -->
       <button 
+        *ngIf="activeTab !== 'achievements'"
         (click)="activeTab === 'tasks' ? openCreateModal() : openCreateDailyModal()" 
         class="px-5 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-bold rounded-xl shadow-lg hover:scale-105 hover:shadow-yellow-500/50 transition-transform">
         + Nueva {{ activeTab === 'tasks' ? 'tarea' : 'tarea diaria' }}
       </button>
     </div>
+
+
+    <div *ngIf="activeTab === 'achievements'">
+      <app-achievement-list [achievements]="achievements"></app-achievement-list>
+    </div>
+
 
     <!-- Lista -->
     <div *ngIf="activeTab === 'tasks'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.lifeup.adapters.mapper.UserMapper;
 import com.example.lifeup.adapters.outbound.persistence.JpaUserEntity;
@@ -43,8 +44,10 @@ public class UserService {
         return mapper.toDomain(currentUser());
     }
 
-    public User addExperience(int points) {
-        JpaUserEntity user = currentUser();
+    @Transactional
+    public User addExperience(UUID userId, int points) {
+        JpaUserEntity user = springUserRepo.findById(userId)
+        .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setExperience(user.getExperience() + points);
 

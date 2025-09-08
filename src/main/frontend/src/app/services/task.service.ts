@@ -39,6 +39,6 @@ export class TaskService {
   }
 
   completeTask(id: string) {
-    return this.http.patch<Task>(`${this.apiUrl}/${id}/complete`, {});
+    return this.http.patch<Task>(`${this.apiUrl}/${id}/complete`, null);
   }
 }

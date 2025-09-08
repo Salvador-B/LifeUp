@@ -90,7 +90,7 @@ public class DailyTaskService {
         }
 
         dailyTask.setDoneToday(true);
-        userService.addExperience(dailyTask.getPoints());
+        //userService.addExperience(dailyTask.getPoints());
         dailyTask.setLastCompletedDate(LocalDate.now());
         return repository.save(dailyTask);
     }

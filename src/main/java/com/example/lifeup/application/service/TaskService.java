@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.example.lifeup.adapters.outbound.persistence.JpaUserEntity;
 import com.example.lifeup.adapters.outbound.persistence.SpringDataUserRepository;
 import com.example.lifeup.domain.model.Task;
+import com.example.lifeup.domain.model.TaskCompletedEvent;
 import com.example.lifeup.domain.model.TaskDifficulty;
 import com.example.lifeup.domain.port.out.TaskRepositoryPort;
 import com.example.lifeup.domain.port.out.UserRepositoryPort;
@@ -25,6 +27,9 @@ public class TaskService {
 
     @Autowired 
     private SpringDataUserRepository springUserRepo;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     public TaskService(TaskRepositoryPort repository, UserRepositoryPort userRepository){
         this.repository = repository;
@@ -66,6 +71,7 @@ public class TaskService {
     }
 
     public Task completeTask(UUID id) {
+        System.out.println("➡️ [Service] intentando completar tarea con id=" + id);
         Task task = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found with id " + id));
 
@@ -74,8 +80,17 @@ public class TaskService {
         }
 
         task.setDone(true);
-        userService.addExperience(task.getPoints());
-        return repository.save(task);
+        Task savedTask = repository.save(task);
+
+        System.out.println("✅ [Service] tarea marcada como completada: " + savedTask.getId());
+
+        UUID userId = task.getUser().getId();
+        UUID taskId = task.getId();
+
+        System.out.println("📢 Publicando evento: user=" + userId + " points=" + task.getPoints());
+        eventPublisher.publishEvent(new TaskCompletedEvent(this, userId, taskId, task.getPoints()));
+  
+        return savedTask;
     }
 
     private int calculatePoints(TaskDifficulty difficulty) {
