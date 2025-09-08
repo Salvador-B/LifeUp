@@ -1,0 +1,16 @@
+<div class="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
+  <div
+    *ngFor="let t of toasts$ | async; trackBy: trackById"
+    class="pointer-events-auto flex items-center gap-3 w-[320px]
+           bg-gray-800/95 text-white rounded-xl shadow-2xl border border-emerald-400/40
+           px-4 py-3 animate-achievement"
+  >
+    <div class="text-2xl">{{ t.icon || '🏆' }}</div>
+    <div class="flex-1">
+      <p class="font-bold">¡Logro desbloqueado!</p>
+      <p class="text-sm opacity-90 truncate">{{ t.title }}</p>
+      <p class="text-xs opacity-70" *ngIf="t.subtitle">{{ t.subtitle }}</p>
+    </div>
+    <button (click)="close(t.id)" class="text-white/70 hover:text-white">✖</button>
+  </div>
+</div>

@@ -6,13 +6,19 @@ import { TaskCardComponent } from './components/task-card/task-card.component';
 import { FormsModule } from '@angular/forms';
 import { DailyTaskComponent } from './components/daily-task/daily-task.component';
 import { DailyTask, DailyTaskService, DayOfWeek } from './services/daily-task.service';
-import { AuthService } from './services/auth.service';
+import { AuthService, AuthUser } from './services/auth.service';
 import { AuthComponent } from './components/auth/auth.component';
+import { Achievement, AchievementListComponent } from './components/achievement-list/achievement-list.component';
+import { AchievementService } from './services/achievement.service';
+import { filter, switchMap } from 'rxjs';
+import { AchievementToastComponent } from './components/achievement-toast/achievement-toast.component';
+import { AchievementToastService } from './services/achievement-toast.service';
+
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, UserStatsComponent, TaskCardComponent, DailyTaskComponent, AuthComponent],
+  imports: [CommonModule, FormsModule, UserStatsComponent, TaskCardComponent, DailyTaskComponent, AuthComponent, AchievementListComponent, AchievementToastComponent],
   templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit {
@@ -21,6 +27,7 @@ export class AppComponent implements OnInit {
 
   tasks: Task[] = [];
   dailyTasks: DailyTask[] = [];
+  achievements: Achievement[] = [];
   showModal = false;
   dailyShowModal = false;
   isEditing = false;
@@ -35,13 +42,18 @@ export class AppComponent implements OnInit {
     repeatEvery: 1,
     daysOfWeek: [] as DayOfWeek[]
   };
-  activeTab: 'tasks' | 'daily' = 'tasks';
+  activeTab: 'tasks' | 'daily' | 'achievements' = 'tasks';
   allDays: DayOfWeek[] = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'];
   showCompleted = true;
+
+  lastAchievementIds = new Set<string>;
+  achievementsLoadedOnce = false
 
   constructor(
     private taskService: TaskService,
     private dailyTaskService: DailyTaskService,
+    private achievementService: AchievementService,
+    private toast: AchievementToastService,
     public auth: AuthService
   ) {}
 
@@ -59,6 +71,28 @@ export class AppComponent implements OnInit {
   }
 
   loadData() {
+
+    this.auth.user$.pipe(
+      filter((user): user is AuthUser => !!user), // solo si no es null
+      switchMap(user =>
+        this.achievementService.getUserAchievements(user.id)
+      )
+    ).subscribe(list => {
+      // si es la primera vez que cargamos logros, guardamos y NO mostramos toasts
+      if (!this.achievementsLoadedOnce) {
+        this.lastAchievementIds = new Set(list.map(a => a.id));
+        this.achievementsLoadedOnce = true;
+      } else {
+        // detectar solo los nuevos
+        const newOnes = list.filter(a => !this.lastAchievementIds.has(a.id));
+        newOnes.forEach(a => this.toast.show(a.name, a.description));
+        // actualizar conjunto
+        this.lastAchievementIds = new Set(list.map(a => a.id));
+      }
+      // actualizar lista visible
+      this.achievements = list;
+    });
+
     this.taskService.getTasks().subscribe(data => this.tasks = data);
     this.dailyTaskService.getDailyTasks().subscribe(data => this.dailyTasks = data);
   }
